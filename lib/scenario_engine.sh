@@ -170,6 +170,9 @@ scenario_unpack()
 			IFS=$old_IFS
 			scenario_script_add_env "$cur_script"
 			IFS=$'\n'
+
+			echo "set -e" >> ${cur_script}
+			echo "set -x" >> ${cur_script}
 			chmod 755 ${cur_script}
 		    else
 			writing_script=0
