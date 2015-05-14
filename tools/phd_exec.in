@@ -142,7 +142,7 @@ if [ ! -e "$scenario" ]; then
 		fi
 	fi
 fi
-PHD_SCENARIO=$scenario
+PHD_SCENARIO=$(basename $scenario)
 
 if [ ! -z "$variables" ]; then
     if [ ! -e "$variables" ]; then

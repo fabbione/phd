@@ -163,49 +163,6 @@ phd_log()
 	fi
 }
 
-phd_log_script_output()
-{
-	local output="$1"
-	local script="$2"
-	local rc=$3
-	local node=$4
-	local enable_log_stdout=0
-	local priority="LOG_DEBUG"
-	local level=0
-
-	if [ $rc -ne 0 ]; then
-		priority="LOG_INFO"
-	fi
-
-	phd_log_priority_index "$priority"
-	level=$?
-
-	if [ -z "$output" ]; then
-		return
-	fi
-
-	if [ $level -le $PHD_LOG_LEVEL ] && [ $PHD_LOG_STDOUT -ne 0 ]; then
-		enable_log_stdout=1
-	fi
-
-	if [ $enable_log_stdout -ne 0 ]; then
-		echo -e "\n"
-	fi
-	phd_log $priority "BEGIN SCRIPT LOG, $script, ON NODE, $node"
-	while read line
-	do
-		if [ $enable_log_stdout -ne 0 ]; then
-			echo -e "$line"
-		fi
-		if [ -n "$PHD_LOG_FILE" ]; then
-			echo "$line" >> $PHD_LOG_FILE
-		fi
-	done < <(echo "$output" | sed 's/ LOG_/\nLOG_/g')
-	phd_log $priority "EXIT CODE $rc"
-	phd_log $priority "END EXTERNAL SCRIPT LOG ON NODE $node\n"
-
-}
-
 phd_set_exec_dir()
 {
 	PHD_TMP_DIR=$1
@@ -316,12 +273,55 @@ phd_script_exec()
 	local rc
 
 	for node in $(echo $nodes); do
-		phd_log LOG_INFO "executing script \"$script\" on node \"$node\""		
-		phd_cmd_exec "mkdir -p $dir" "$node" > /dev/null 2>&1
-		phd_node_cp "$script" "$script" "$node" "755" > /dev/null 2>&1
-		output=$(phd_cmd_exec "$script" "$node")
+
+		if [ $(echo $node | awk -F. '{print $1}') = $(uname -n | awk -F. '{print $1}')  ]; then
+		    phd_log LOG_INFO "executing script \"$script\" on the local node"
+		    bash -c "$script" > $script.output 2>&1
+		else
+		    phd_log LOG_INFO "executing script \"$script\" on node \"$node\""		
+		    phd_cmd_exec "mkdir -p $dir" "$node" > /dev/null 2>&1
+		    phd_node_cp "$script" "$script" "$node" "755" > /dev/null 2>&1
+
+		    # Skip phd_cmd_exec() to avoid munging the output
+		    case $PHD_TRANSPORT in
+			qarsh) phd_qarsh_cmd_exec "$script" "$node" > $script.output 2>&1 ;;
+			*)	   phd_ssh_cmd_exec   "$script" "$node" > $script.output 2>&1 ;;
+		    esac
+		fi
 		rc=$?
-		phd_log_script_output "$output" $(basename $script) $rc $node
+
+		local enable_log_stdout=0
+		local priority="LOG_DEBUG"
+		local level=0
+
+		if [ $rc -ne 0 ]; then
+		    priority="LOG_INFO"
+		fi
+
+		phd_log_priority_index "$priority"
+		level=$?
+
+		if [ -s $script.output ]; then
+		    phd_log $priority "BEGIN SCRIPT LOG, $script, ON NODE, $node"
+		    if [ $level -le $PHD_LOG_LEVEL ] && [ $PHD_LOG_STDOUT -ne 0 ]; then
+			enable_log_stdout=1
+		    fi
+
+		    if [ $enable_log_stdout -ne 0 ]; then
+			echo -e "\n"
+		    fi
+
+		    if [ $enable_log_stdout -ne 0 ]; then
+			cat $script.output
+		    fi
+		    if [ -n "$PHD_LOG_FILE" ]; then
+			cat $script.output >> $PHD_LOG_FILE
+		    fi
+		    rm -f $script.output
+		    phd_log $priority "EXIT CODE $rc"
+		    phd_log $priority "END EXTERNAL SCRIPT LOG ON NODE $node\n"
+		fi
+
 	done
 	return $rc
 }
