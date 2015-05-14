@@ -171,8 +171,10 @@ scenario_unpack()
 			scenario_script_add_env "$cur_script"
 			IFS=$'\n'
 
+			echo "PS4='+ `date +"%T"`: ${FUNCNAME[0]:+${FUNCNAME[0]}:}${LINENO}: '" >> ${cur_script}
 			echo "set -e" >> ${cur_script}
 			echo "set -x" >> ${cur_script}
+		  
 			chmod 755 ${cur_script}
 		    else
 			writing_script=0
