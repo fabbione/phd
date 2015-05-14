@@ -276,9 +276,7 @@ scenario_package_install()
 	local packages=$(eval echo "\$${SREQ_PREFIX}_packages")
 
 	if [ "x$packages" != x ]; then
-	    phd_log LOG_NOTICE "=========================" 
 	    phd_log LOG_NOTICE "==== Package Install ====" 
-	    phd_log LOG_NOTICE "=========================" 
 	    
 	# install custom packages from a directory
 	    package_install_custom "$custom_package_dir"  "$nodes"
@@ -302,9 +300,7 @@ scenario_storage_destroy()
 		return
 	fi
 
-	phd_log LOG_NOTICE "==================================" 
 	phd_log LOG_NOTICE "====  Checking Shared Storage ====" 
-	phd_log LOG_NOTICE "==================================" 
 
 	if [ -z "$shared_dev" ]; then
 		phd_exit_failure "Could not clear shared storage, cluster definition contains no shared storage."
@@ -334,9 +330,7 @@ scenario_cluster_destroy()
 	fi
 
 	if [ "$destroy" -eq "1" ]; then
-	    phd_log LOG_NOTICE "====================================" 
 	    phd_log LOG_NOTICE "====  Checking Cluster Shutdown ====" 
-	    phd_log LOG_NOTICE "====================================" 
 		pacemaker_cluster_stop
 		pacemaker_cluster_clean
 		phd_log LOG_NOTICE "Success: Cluster destroyed"
@@ -354,9 +348,7 @@ scenario_cluster_init()
 	fi
 
 	if [ "$cluster_init" -eq "1" ]; then
-	    phd_log LOG_NOTICE "==================================" 
 	    phd_log LOG_NOTICE "==== Checking Cluster Startup ====" 
-	    phd_log LOG_NOTICE "==================================" 
 
 		pacemaker_cluster_init
 		pacemaker_cluster_start
@@ -375,15 +367,11 @@ scenario_distribute_api()
 	local file
 
 	if [ $api_init = 0 ]; then
-	    phd_log LOG_NOTICE "==============================================" 
 	    phd_log LOG_NOTICE "==== Asuming PHD API is already installed ====" 
-	    phd_log LOG_NOTICE "==============================================" 
 	    return
 	fi
 
-	phd_log LOG_NOTICE "============================" 
 	phd_log LOG_NOTICE "==== Distribute PHD API ====" 
-	phd_log LOG_NOTICE "============================" 
 
 	# also copy it locally
 	cp -r ${PHDCONST_ROOT}/lib/* "${PHD_TMP_DIR}/lib/"
@@ -399,9 +387,7 @@ scenario_distribute_api()
 
 scenario_environment_defaults()
 {
-	phd_log LOG_NOTICE "===================================="
 	phd_log LOG_NOTICE "==== Distribute Default Configs ====" 
-	phd_log LOG_NOTICE "====================================" 
 
 	local nodes=$(definition_nodes)
 
@@ -493,14 +479,10 @@ scenario_verify()
 
 scenario_exec()
 {
-	phd_log LOG_NOTICE "=======================================================" 
 	phd_log LOG_NOTICE "==== Verifying Scenario against Cluster Definition ====" 
-	phd_log LOG_NOTICE "=======================================================" 
 	scenario_verify
 
-	phd_log LOG_NOTICE "========================================="
 	phd_log LOG_NOTICE "==== Verifying Cluster Communication ===="
-	phd_log LOG_NOTICE "========================================="
 	phd_verify_connection "$(definition_nodes)"
 	scenario_clean_nodes
 	phd_log LOG_NOTICE "Success: all nodes are accessible"
@@ -517,9 +499,7 @@ scenario_exec()
 
 	scenario_cluster_init
 
-	phd_log LOG_NOTICE "======================================" 
 	phd_log LOG_NOTICE "==== Executing Deployment Scripts ====" 
-	phd_log LOG_NOTICE "======================================" 
 	scenario_script_exec 0
 	phd_log LOG_NOTICE "Success: Deployment Complete" 
 }
@@ -538,9 +518,7 @@ scenario_exec_tests()
 		iter=10
 	fi
 
-	phd_log LOG_NOTICE "=================================" 
 	phd_log LOG_NOTICE "==== Executing Test Scripts  ====" 
-	phd_log LOG_NOTICE "=================================" 
 	phd_log LOG_NOTICE "Performing $iter random test iterations" 
 
 	for cur_test in $(ls ${PHD_TMP_DIR}/tests/*); do
