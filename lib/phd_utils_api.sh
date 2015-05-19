@@ -96,10 +96,14 @@ phd_log_priority_index()
 	LOG_TRACE) level=4;;
 	# exec output can only be logged to files
 	LOG_EXEC) level=5;;
-	*) phd_log LOG_WARNING "!!!WARNING!!! Unknown log level ($priority)";;
+	*)
+		phd_log LOG_WARNING "!!!WARNING!!! Unknown log level ($priority)"
+		return 1
+		;;
 	esac
 
-	return $level
+	echo $level
+	return 0
 }
 
 
@@ -148,8 +152,7 @@ phd_log()
 	*) : ;;
 	esac
 
-	phd_log_priority_index "$priority"
-	level=$?
+	level=$(phd_log_priority_index "$priority")
 
 	if [ $level -le $PHD_LOG_LEVEL ]; then
 		if [ $enable_log_stdout -ne 0 ]; then
@@ -298,8 +301,7 @@ phd_script_exec()
 		    priority="LOG_INFO"
 		fi
 
-		phd_log_priority_index "$priority"
-		level=$?
+		level=$(phd_log_priority_index "$priority")
 
 		if [ -s $script.output ]; then
 		    phd_log $priority "BEGIN SCRIPT LOG, $script, ON NODE, $node"
