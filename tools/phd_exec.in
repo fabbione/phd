@@ -43,7 +43,7 @@ fi
 variables=""
 
 if ! [ -w $exec_dir ]; then
-       exec_dir="$HOME/phd_state"
+       exec_dir="/tmp/phd_state"
        mkdir -p $exec_dir
 fi
 
